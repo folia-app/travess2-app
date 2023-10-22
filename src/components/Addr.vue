@@ -1,5 +1,5 @@
 <template lang="pug">
-span.addr.whitespace-nowrap(:class="{'addr--is-you': isYou}") {{ name || '...' }}
+span.addr(:class="{'addr--is-you': isYou}") {{ name || '...' }}
 </template>
 
 <script>

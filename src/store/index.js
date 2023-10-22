@@ -49,14 +49,14 @@ const updateContracts = async (etherProvider) => {
 
 const store = createStore({
   state() {
-    const seed = network == "homestead" ? null : network
     return {
       network,
       baseURI: '',
       wallet: {},
       account: {},
-      nfts: [],
+      nfts: undefined,
       price: undefined,
+      maxSupply: undefined,
       ensNames: {},
       pending: [
         // {
@@ -86,13 +86,18 @@ const store = createStore({
     addrShort: () => (addr) => addr ? '0x' + addr.slice(2, 4).toUpperCase() + '-' + addr.slice(-4).toUpperCase() : '...',
     ethToWei: () => (eth) => ethers.utils.parseUnits(eth).toString() ?? '-',
     weiToETH: () => wei => ethers.utils.formatUnits(wei) ?? '...',
-    mintCount: (state) => state.nfts.length,
-    etherscanLink: (state) => hash => `https://${state.network == 'homestead' ? '' : state.network + '.'}etherscan.io/tx/${hash}`,
-    openSeaLink: (state) => ({ tokenId, account }) => {
+    mintCount: (state) => state.nfts?.length,
+    contractAddress: () => Contracts.Travess.networks[network].address,
+    etherscanLink: (state, getters) => hash => {
+      let url = `https://${state.network != 'homestead' ? state.network + '.' : ''}etherscan.io`
+      url += hash ? `/tx/${hash}`
+        : `/address/${getters.contractAddress}`
+      return url
+    },
+    openSeaLink: (state, getters) => ({ tokenId, account }) => {
       const domain = `https://${state.network == 'homestead' ? '' : 'testnets.'}opensea.io`
       if (tokenId) {
-        const contract = NFT
-        return `${domain}/assets/${state.network === 'homestead' ? 'ethereum' : network}/${contract.networks[network].address}/${tokenId}`
+        return `${domain}/assets/${state.network === 'homestead' ? 'ethereum' : network}/${getters.contractAddress}/${tokenId}`
       }
       return account ? `${domain}/${account}`
         : domain
@@ -106,6 +111,9 @@ const store = createStore({
       state.account = account
     },
     ADD_NFT(state, nft) {
+      if (state.nfts === undefined) {
+        state.nfts = []
+      }
       state.nfts.push(nft)
     },
     UPDATE_NFT(state, nft) {
@@ -117,6 +125,9 @@ const store = createStore({
     },
     SET_PRICE(state, value) {
       state.price = value
+    },
+    SET_MAX_SUPPLY(state, value) {
+      state.maxSupply = value
     },
     ADD_ENS_NAME(state, { addr, result }) {
       state.ensNames[addr.toLowerCase()] = result
@@ -265,7 +276,7 @@ const store = createStore({
               return dispatch('handlePendingTx', { name: 'mint', tx })
             } catch (e) {
               if (e.toString().indexOf("rejected transaction") > -1) {
-                throw new Error(`Cancelled transaction`)
+                throw new Error(`cancelled transaction`)
               } else {
                 throw e
               }
@@ -279,7 +290,7 @@ const store = createStore({
         return dispatch('handlePendingTx', { name: 'mint', tx })
       } catch (e) {
         if (e.toString().indexOf("rejected transaction") > -1) {
-          throw new Error(`Cancelled transaction`)
+          throw new Error(`cancelled transaction`)
         } else {
           throw e
         }
@@ -294,6 +305,19 @@ const store = createStore({
         const price = await nftContract.price()
         commit('SET_PRICE', price)
         return price
+      } catch (e) {
+        console.error(e)
+      }
+    },
+    async getMaxSupply ({ state, commit }) {
+      if (state.maxSupply) {
+        return state.maxSupply
+      }
+
+      try {
+        const maxSupply = await nftContract['MAX_SUPPLY']()
+        commit('SET_MAX_SUPPLY', Number(maxSupply))
+        return maxSupply
       } catch (e) {
         console.error(e)
       }
