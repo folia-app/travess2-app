@@ -1,0 +1,38 @@
+{
+  "name": "nft-dapp",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs --fix --ignore-path .gitignore",
+    "format": "prettier --write src/"
+  },
+  "dependencies": {
+    "@web3-onboard/core": "^2.20.4",
+    "@web3-onboard/injected-wallets": "^2.10.2",
+    "@web3-onboard/walletconnect": "^2.4.2-alpha.1",
+    "ethers": "^5.7.2",
+    "merkletreejs": "^0.3.10",
+    "nft-contracts": "git+ssh://git@github.com/folia-app/nft-contracts.git",
+    "pug": "^3.0.2",
+    "vue": "^3.3.4",
+    "vue-meta": "^2.4.0",
+    "vue-router": "^4.2.2",
+    "vuex": "^4.1.0",
+    "xss": "^1.0.14"
+  },
+  "devDependencies": {
+    "@rushstack/eslint-patch": "^1.2.0",
+    "@vitejs/plugin-vue": "^4.2.3",
+    "@vue/eslint-config-prettier": "^7.1.0",
+    "autoprefixer": "^10.4.14",
+    "eslint": "^8.39.0",
+    "eslint-plugin-vue": "^9.11.0",
+    "postcss": "^8.4.25",
+    "prettier": "^2.8.8",
+    "tailwindcss": "^3.3.2",
+    "vite": "^4.3.9"
+  }
+}

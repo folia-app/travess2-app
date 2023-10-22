@@ -1,0 +1,106 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* css variables */
+:root{
+  /* --rem:10px; */
+  
+  /* web3onboard */
+  --onboard-font-family-normal: "Comic Sans", "Comic Sans MS", "Chalkboard", "ChalkboardSE-Regular", sans-serif;
+
+  --stroke-w-xs: 5px;
+  --stroke-w-sm: 6px;
+  --stroke-w: 7px;
+
+  --h1: 60px;
+  --h2: 56px;
+  --h3: 45px;
+  --h3b: 40px;
+  --h4: 36px;
+  --h5: 30px;
+  --h5b: 28px;
+  --h6: 22px;
+
+  --color-bg: black;
+  --color-text: #CCFF01;
+  --color-accent: cyan ; /*#0d84fa;*/
+  --color-accent2: rgb(0,255,0);
+  --color-accent3: magenta;
+
+  --red-500: rgb(255,0,0);
+}
+
+@screen md {
+  :root {
+    --stroke-w-xs: 6px;
+    --stroke-w-sm: 7px;
+    --stroke-w: 10px;
+  }
+}
+
+/* base / reset */
+
+html{
+  /* font-size:var(--rem); */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+*{
+  &:focus{
+    outline:none;
+  }
+  &:focus-visible{
+    @apply ring-8 ring-green-500 ring-offset-2;
+  }
+}
+
+button{
+  font-weight: inherit;
+  color:inherit;
+  letter-spacing: inherit;
+}
+
+input{
+  appearance:none;
+  letter-spacing: inherit;
+  line-height: inherit;
+  color: inherit;
+  background: transparent;
+  &::placeholder{
+    color:inherit;
+  }
+  &::-webkit-outer-spin-button,
+  &::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+
+  /* Firefox */
+  &[type=number] {
+    -moz-appearance: textfield;
+  }
+}
+
+/* custom helpers */
+
+.overlay{
+  @apply w-full h-full top-0 left-0;
+}
+.overlay-px{
+  top:-1px; left:-1px;
+  width:calc(100% + 2px);
+  height:calc(100% + 2px);
+}
+.scrollbars-hidden::-webkit-scrollbar{ display: none; }
+
+.children-mt-em > * + *{ margin-top: 0.75em; }
+
+.links-underline a {
+  @apply border-b border-current;
+  border-style: dashed;
+  &:hover, &:focus{
+    border-style:solid;
+  }
+}
