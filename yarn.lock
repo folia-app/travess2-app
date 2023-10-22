@@ -3311,9 +3311,9 @@ next-tick@1, next-tick@^1.1.0:
   resolved "https://registry.yarnpkg.com/next-tick/-/next-tick-1.1.0.tgz#1836ee30ad56d67ef281b22bd199f709449b35eb"
   integrity sha512-CXdUiJembsNjuToQvxayPZF9Vqht7hewsvy2sOWafLvi2awflj9mOC6bHIg50orX8IJvWKY9wYQ/zB2kogPslQ==
 
-"nft-contracts@git+ssh://git@github.com/folia-app/nft-contracts.git":
+"nft-contracts@https://github.com/folia-app/travess":
   version "1.0.0"
-  resolved "git+ssh://git@github.com/folia-app/nft-contracts.git#c1fbcb37f7ed5d190c3e82606ac26a3c9db89df8"
+  resolved "https://github.com/folia-app/travess#dd66ee622f17d3006713ee511656acfba53a88eb"
 
 node-fetch@^2.6.12:
   version "2.7.0"
