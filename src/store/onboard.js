@@ -1,6 +1,6 @@
 
 
-const network = import.meta.env.VITE_NETWORK
+const network = import.meta.env.VITE_NETWORK_NAME
 const infuraKey = import.meta.env.VITE_INFURA_KEY
 
 import walletConnectModule from '@web3-onboard/walletconnect'

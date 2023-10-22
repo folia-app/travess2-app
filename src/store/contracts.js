@@ -1,16 +1,20 @@
 import store from './index'
 import { ethers } from 'ethers'
 
-import { NFT, /*Metadata,*/ /*merkleAddresses*/ } from 'nft-contracts'
+import Contracts from 'nft-contracts'
 
-const network = import.meta.env.VITE_NETWORK
+const network = import.meta.env.VITE_NETWORK_NAME
 const infuraKey = import.meta.env.VITE_INFURA_KEY
 
 const infuraProvider = new ethers.providers.InfuraProvider(network, infuraKey)
 
+function getNftContract (provider) {
+  return new ethers.Contract(Contracts.Travess.networks[network].address, Contracts.Travess.abi, provider)
+}
+
 async function getProvider({ name }) {
   let provider = infuraProvider
-  name = name ?? import.meta.env.VITE_NETWORK
+  name = name ?? import.meta.env.VITE_NETWORK_NAME
 
   // swap-in window provider if on correct network
   if (window.ethereum) {
@@ -37,7 +41,7 @@ async function init() {
 
     try {
       const { name } = await windowProvider.getNetwork()
-      if (name === import.meta.env.VITE_NETWORK) {
+      if (name === import.meta.env.VITE_NETWORK_NAME) {
         provider = windowProvider
       }
     } catch (e) {
@@ -45,7 +49,7 @@ async function init() {
     }
   }
 
-  let nftContract = new ethers.Contract(NFT.networks[network].address, NFT.abi, provider)
+  let nftContract = getNftContract(provider)
   // let metadataContract = new ethers.Contract(Metadata.networks[network].address, Metadata.abi, provider)
 
   // get all previous Transfer events from NFTContract
@@ -83,5 +87,5 @@ function processNFTTransfer(event) {
   }
 }
 
-export { init, getProvider }
+export { init, getProvider, getNftContract }
 

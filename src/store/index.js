@@ -1,20 +1,19 @@
 import { createStore } from 'vuex'
 import { ethers } from 'ethers'
-import { NFT, /*Metadata,*/ merkleAddresses } from 'nft-contracts'
 import { MerkleTree } from 'merkletreejs';
-import xss from "xss"
+import Contracts from 'nft-contracts'
 
-import { init, getProvider } from './contracts'
+import { init, getProvider, getNftContract } from './contracts'
 import onboard from './onboard'
 import networks from './networks'
 
 init()
 
-const network = import.meta.env.VITE_NETWORK
+const network = import.meta.env.VITE_NETWORK_NAME
 const infuraKey = import.meta.env.VITE_INFURA_KEY
 
 let provider = new ethers.providers.InfuraProvider(network, infuraKey)
-let nftContract = new ethers.Contract(NFT.networks[network].address, NFT.abi, provider)
+let nftContract = getNftContract(provider)
 
 // this subscribes to the onboard.js state object and updates the vuex store anytime it changes
 // this includes connecting, disconnecting or changing balance
@@ -45,8 +44,7 @@ state.subscribe((update) => {
 
 
 const updateContracts = async (etherProvider) => {
-  provider = etherProvider
-  nftContract = new ethers.Contract(NFT.networks[network].address, NFT.abi, provider)
+  nftContract = getNftContract(etherProvider)
 }
 
 const store = createStore({
@@ -250,7 +248,7 @@ const store = createStore({
           // const fakeTreeRoot = "0x" + fakeTree.getRoot().toString('hex')
 
           const tree = new MerkleTree(
-            merkleAddresses.map(ethers.utils.keccak256),
+            Contracts.merkleAddresses.map(ethers.utils.keccak256),
             ethers.utils.keccak256,
             { sortPairs: true },
           );
