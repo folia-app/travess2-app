@@ -2,17 +2,21 @@
   <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <style>
-      html,
-      document,
-      body {
+      *{
         margin: 0;
         padding: 0;
+      }
+      html{
+        font-size:14px;
         background-color: black;
       }
       body {
         display: flex;
         overflow: scroll;
         min-height: 100vh;
+        text-rendering: optimizeLegibility;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
       }
       img {
         margin: auto;
@@ -31,47 +35,80 @@
         object-fit: contain;
         object-position: center center;
         cursor: zoom-in;
+        image-rendering: auto;
       }
-      #loading {
+      #status {
         position: fixed;
         top:0; left:0;
         height:100%; width:100%;
         display: flex;
         align-items: center;
         justify-content: center;
+        color:white;
+        font-family: monospace;
+        text-align: center;
+      }
+      .animate-blink{
+        animation: blink 500ms infinite linear;
+      }
+      ::-webkit-scrollbar{
+        display: none;
+      }
+      @keyframes blink{
+        0%{opacity:0}
+        50%{opacity:0}
+        51%{opacity:1}
+        100%{opacity:1}
       }
     </style>
   </head>
   <body>
     <img id="img">
-    <div id="loading">Loading...</div>
+    <div id="status" class="animate-blink">loading...</div>
     <script>
-      const ipfs = 'QmexbJ5nNDJ4VnDTM1uPKMTHMxL52sZ1Gnao9uH4qSfF7a'
-      const proxy = 'https://folia.mypinata.cloud/ipfs/'
+      const ipfsGateway = 'https://folia.mypinata.cloud/ipfs/'
       const img = document.getElementById("img")
+      const statusEl = document.getElementById('status')
+      
       const zoomStages = 4
       let natW
       let maxW
+      
+      // get TOKEN ID and IPFS HASH from url hash
+      const hashArray = window.location.hash.substr(1).split('-')
+      const id = hashArray[0]
+      const ipfsHash = hashArray[1]
 
-      // take the id from the url hash and add it to the img src as ./id.png
-      img.onload = (e) => {
-        natW = e.target.naturalWidth // / Math.max(1, window.devicePixelRatio * 1)
-        // maxW = natW
-        // e.target.style.maxWidth = maxW + 'px'
-        window.parent.postMessage('imgLoaded')
-        setTimeout(randomScroll, 100)
-        setTimeout(() => {
-          document.getElementById('loading').style.display = 'none'
-        }, 100)
-      };
-      const id = window.location.hash.substr(1)
-      if (id) {
-        img.src = proxy + ipfs + '/' + id + '.png'
-      } else {
-        alert('add #{id} to the url')
+      function init () {
+        if (!id || !ipfsHash) {
+          updateStatus('missing token id or ipfs hash in url:<br>...#TOKENID-IPFSHASH')
+          return
+        }
+
+        img.addEventListener('load', onImgLoad)
+        img.addEventListener('error', onImgError)
+        // set source after listeners are attached
+        img.src = ipfsGateway + ipfsHash + '/' + id + '.png'
+        window.parent.postMessage('loading')
       }
       
-      img.addEventListener("click", (e) => {
+      function onImgLoad (e) {
+        window.parent.postMessage('imgLoaded')
+        natW = e.target.naturalWidth
+        maxW = natW
+        setTimeout(() => {
+          randomScroll()
+          statusEl.style.display = 'none'
+        }, 100)
+        e.target.addEventListener('click', onImgClick)
+      };
+
+      function onImgError (e) {
+        console.error('error loading image:', e)
+        updateStatus(`error loading token #${id}<br>(does it exist?)`)
+      }
+      
+      function onImgClick (e) {
         const step = parseInt(natW / zoomStages)
         const tmpX = img.clientWidth
         const tmpY = img.clientHeight
@@ -86,14 +123,14 @@
           // zoom out via max-width
           maxW = maxW === undefined ? natW : maxW - step
 
-          img.setAttribute('data-maxW', maxW)
           img.style.maxWidth = maxW + 'px'
 
           const imgX = (((e.clientX - rect.left) / tmpX) * img.naturalWidth) - (window.innerWidth / 2)
           const imgY = ((e.clientY - rect.top) / tmpY) * img.naturalHeight -(window.innerHeight / 2)
           window.scrollTo(imgX, imgY)
         }
-      })
+      }
+
       const randomScroll = () => {
         const x = Math.floor(Math.random() * (img.naturalWidth - window.innerWidth));
         const y = Math.floor(Math.random() * (img.naturalHeight - window.innerHeight));
@@ -101,7 +138,13 @@
         // set opacity to 1 on img
         img.style.opacity = 1
       }
-      window.parent.postMessage('loading')
+
+      function updateStatus (msg) {
+        statusEl.classList.remove('animate-blink')
+        statusEl.innerHTML = msg
+      }
+
+      init()
     </script>
   </body>
 </html>

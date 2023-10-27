@@ -83,19 +83,24 @@
     toolTipToken.value = undefined
   }
 
-  // 
+  // transition + scroll lock
   const route = useRoute()
   const transition = ref('none')
   
   watch(() => route.name, (to, from) => {
-    console.log(to, from)
-    if (to === 'token') {
+    toggleScrollLock(to)
+    transition.value = to !== from ? 'overlayfade' : 'none'
+  })
+
+  function toggleScrollLock (routeName) {
+    if (routeName === 'token') {
       document.body.style.overflow = 'hidden'
     } else {
       document.body.style.overflow = 'auto'
     }
-    transition.value = to !== from ? 'overlayfade' : 'none'
-  })
+  }
+
+  toggleScrollLock(route.name)
 
   // last viewed token overlay
   let lastViewed = ref()
@@ -103,10 +108,10 @@
     lastViewed.value = prevId
   })
 
+  // minting
+  const status = ref()
   store.dispatch('getPrice')
   store.dispatch('getMaxSupply')
-
-  const status = ref()
 
   async function mint() {
     try {
@@ -245,7 +250,7 @@
                 <!-- minted thumb -->
                 <router-link :to="`/tokens/${getToken(n).tokenId}`" :data-no="toolTipToken" class="group btn-highlight" :class="{'ring-1 ring-white': lastViewed === getToken(n).tokenId}" @mouseenter="onLinkMouseEnter(n)" @mousemove="moveTooltip" @mouseleave="hideTooltip">
                   ({{ tokensMeta[n-1].latlong }})
-                  <img class="inline-block h-[1.1em] transform -translate-y-[0.1em] align-middle mouse:group-hover:outline" :src="`https://res.cloudinary.com/folia/image/fetch/c_fit,h_360,w_360/${ipfsImage}/${n}.png`" />
+                  <img class="inline-block h-[1.1em] transform -translate-y-[0.1em] align-middle mouse:group-hover:outline" :src="`/thumbs/tiny/${n}.png.webp`" />
                   #{{ ('000' + n).slice(-3) }}
                 </router-link> 
                 <!-- / -->
@@ -275,16 +280,16 @@
     
     <!-- link tooltip -->
     <div ref="tooltip" :class="['fixed z-10 pointer-events-none py-[1em] w-auto h-auto transition-opacity duration-300', {'opacity-0': !toolTipToken}]" :style="toolTipToken ? toolTipPosition : ''">
-      <template v-for="n in count" :key="'thumb2'+n">
-        <img :src="`https://res.cloudinary.com/folia/image/fetch/c_fit,h_360,w_360/${ipfsImage}/${n}.png`" :class="['block max-w-[240px] max-h-[240px]', {'hidden': toolTipToken !== n}]" />
-      </template>
+      <!-- (preview img) -->
+      <img v-if="typeof toolTipToken === 'number'" :src="`/thumbs/${toolTipToken}.jpg`" class="block max-w-[240px] max-h-[240px]" />
+      <!-- (opensea link tip) -->
       <div class="bg-white text-black px-[0.2em] whitespace-nowrap" :class="{'hidden': toolTipToken !== 'view-owner'}">view on OpenSea</div>
       <!-- <div class="bg-white text-black px-[0.2em] whitespace-nowrap" :class="{'hidden': !((toolTipToken ?? '').toString().includes('view-token')) }">view #{{ ((toolTipToken ?? '').toString().split(':')[1] ?? '?') }} on OpenSea</div> -->
     </div> 
   </article>
 </template>
 
-<style>
+<style scoped>
 .overlayfade-enter-active{
   transition:opacity 1000ms
 }
@@ -294,6 +299,9 @@
 .overlayfade-enter-from,
 .overlayfade-leave-to{
   opacity:0
+}
+img{
+  image-rendering: pixelated;
 }
 </style>
 
