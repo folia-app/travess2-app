@@ -11,9 +11,9 @@ import myLogo from './folia-logo-svg-string.js'
 const injected = injectedModule()
 const wcV2InitOptions = {
   projectId: import.meta.env.VITE_WC,
-  dappUrl: "https://nft.folia.app",
-  requiredChains: [1, 11155111],
-  // optionalChains: [11155111],
+  dappUrl: "https://coordinates.folia.app",
+  requiredChains: [1],
+  optionalChains: [11155111],
   version: 2, // **New Param** Defaults to version: 1 - this behavior will be deprecated after the WalletConnect v1 sunset
   // handleUri: handleURI => console.log({ handleURI }),
 }
@@ -45,7 +45,7 @@ const onboard = Onboard({
     name: 'NFT',
     // explorer: 'http://localhost:5173',
     icon: myLogo, // svg string icon
-    logo: myLogo, // svg string logo
+    // logo: myLogo, // svg string logo
     description: 'NFT',
     recommendedInjectedWallets: [
       { name: 'MetaMask', url: 'https://metamask.io' },
