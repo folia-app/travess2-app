@@ -15,7 +15,7 @@
     "@web3-onboard/walletconnect": "^2.4.2-alpha.1",
     "ethers": "^5.7.2",
     "merkletreejs": "^0.3.10",
-    "nft-contracts": "https://github.com/folia-app/travess",
+    "nft-contracts": "https://github.com/folia-app/travess-contracts",
     "pug": "^3.0.2",
     "vue": "^3.3.4",
     "vue-meta": "^2.4.0",

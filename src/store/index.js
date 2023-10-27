@@ -3,7 +3,7 @@ import { ethers } from 'ethers'
 import { MerkleTree } from 'merkletreejs';
 import Contracts from 'nft-contracts'
 
-import { init, getProvider, getNftContract } from './contracts'
+import { init, getProvider, getNftContract, NFTContractDeploy } from './contracts'
 import onboard from './onboard'
 import networks from './networks'
 
@@ -87,7 +87,7 @@ const store = createStore({
     ethToWei: () => (eth) => ethers.utils.parseUnits(eth).toString() ?? '-',
     weiToETH: () => wei => ethers.utils.formatUnits(wei) ?? '...',
     mintCount: (state) => state.nfts?.length,
-    contractAddress: () => Contracts.Travess.networks[network].address,
+    contractAddress: () => NFTContractDeploy.networks[network].address,
     etherscanLink: (state, getters) => hash => {
       let url = `https://${state.network != 'homestead' ? state.network + '.' : ''}etherscan.io`
       url += hash ? `/tx/${hash}`

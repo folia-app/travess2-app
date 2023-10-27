@@ -2,6 +2,7 @@
 import { useRoute, useRouter } from 'vue-router';
 import { onMounted, onUnmounted } from 'vue'
 import { ref } from 'vue';
+import { ipfsIframe } from '../plugins/ipfs';
 
 const route = useRoute()
 const router = useRouter()
@@ -17,6 +18,14 @@ const randomScroll = () => {
   const x = Math.floor(Math.random() * (img.value.offsetWidth -  container.value.offsetWidth));
   const y = Math.floor(Math.random() * (img.value.offsetHeight -  container.value.offsetHeight));
   container.value.scrollTo(x, y);
+}
+
+function onIframeLoad (e) {
+  console.log('iframe loaded', e)
+}
+
+function onIframeMessage (e) {
+  console.log(e.data, e)
 }
 
 function onImgLoad (e) {
@@ -71,12 +80,14 @@ const onKeydown = e => {
 
 const closeOverlayButton = ref()
 
+window.addEventListener('message', onIframeMessage)
 onMounted(() => {
   window.addEventListener('keydown', onKeydown)
   closeOverlayButton.value.focus()
 })
 
 onUnmounted(() => {
+  window.removeEventListener('message', onIframeMessage)
   window.removeEventListener('keydown', onKeydown)
 })
 </script>
@@ -99,10 +110,12 @@ onUnmounted(() => {
         <span class="animate-pulse">loading #{{ tokenId }}</span>
       </div>
       
-      <figure ref="container" :class="['absolute overlay overflow-scroll border border-neutral-900', {'pointer-events-none': loading}]">
+      <!-- <figure ref="container" :class="['absolute overlay overflow-scroll border border-neutral-900', {'pointer-events-none': loading}]">
         <img ref="img" :src="`https://travess2.netlify.app/demo/art/full/full${tokenId}.png`" @load="onImgLoad" :class="['max-w-none block origin-center transition-opacity duration-[2000ms] delay-[2000ms] bg-black', {'absolute overlay object-contain object-center cursor-zoom-in': fitInWindow, 'cursor-zoom-out': !fitInWindow, 'opacity-0 pointer-events-none': loading}]" @click="onImgClick" />
-        <!-- <div class="absolute top-0 left-0 bg-black">zoom_100</div> -->
-      </figure>
+      </figure> -->
+
+      <!-- <iframe class="absolute overlay" :src="`${ipfsIframe}#${tokenId}`" @load="onIframeLoad" /> -->
+      <iframe class="absolute overlay" :src="`/iframe.html#${tokenId}`" @load="onIframeLoad" />
     </div>
   </article>
 </template>

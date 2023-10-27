@@ -8,8 +8,10 @@ const infuraKey = import.meta.env.VITE_INFURA_KEY
 
 const infuraProvider = new ethers.providers.InfuraProvider(network, infuraKey)
 
+const NFTContractDeploy = Contracts.Coordinates
+
 function getNftContract (provider) {
-  return new ethers.Contract(Contracts.Travess.networks[network].address, Contracts.Travess.abi, provider)
+  return new ethers.Contract(NFTContractDeploy.networks[network].address, NFTContractDeploy.abi, provider)
 }
 
 async function getProvider({ name }) {
@@ -87,5 +89,5 @@ function processNFTTransfer(event) {
   }
 }
 
-export { init, getProvider, getNftContract }
+export { init, getProvider, getNftContract, NFTContractDeploy }
 

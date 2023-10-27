@@ -1,0 +1,107 @@
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <style>
+      html,
+      document,
+      body {
+        margin: 0;
+        padding: 0;
+        background-color: black;
+      }
+      body {
+        display: flex;
+        overflow: scroll;
+        min-height: 100vh;
+      }
+      img {
+        margin: auto;
+        display: block;
+        cursor: zoom-out;
+        max-width: none;
+        opacity: 0;
+        image-rendering: pixelated;
+      }
+      img.fit {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        object-position: center center;
+        cursor: zoom-in;
+      }
+      #loading {
+        position: fixed;
+        top:0; left:0;
+        height:100%; width:100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+    </style>
+  </head>
+  <body>
+    <img id="img">
+    <div id="loading">Loading...</div>
+    <script>
+      const ipfs = 'QmexbJ5nNDJ4VnDTM1uPKMTHMxL52sZ1Gnao9uH4qSfF7a'
+      const proxy = 'https://folia.mypinata.cloud/ipfs/'
+      const img = document.getElementById("img")
+      const zoomStages = 4
+      let natW
+      let maxW
+
+      // take the id from the url hash and add it to the img src as ./id.png
+      img.onload = (e) => {
+        natW = e.target.naturalWidth // / Math.max(1, window.devicePixelRatio * 1)
+        // maxW = natW
+        // e.target.style.maxWidth = maxW + 'px'
+        window.parent.postMessage('imgLoaded')
+        setTimeout(randomScroll, 100)
+        setTimeout(() => {
+          document.getElementById('loading').style.display = 'none'
+        }, 100)
+      };
+      const id = window.location.hash.substr(1)
+      if (id) {
+        img.src = proxy + ipfs + '/' + id + '.png'
+      } else {
+        alert('add #{id} to the url')
+      }
+      
+      img.addEventListener("click", (e) => {
+        const step = parseInt(natW / zoomStages)
+        const tmpX = img.clientWidth
+        const tmpY = img.clientHeight
+        const rect = img.getBoundingClientRect()
+        
+        if (maxW !== undefined && maxW - step < window.innerWidth) { // fit in window
+          img.classList.add('fit')
+          img.style.maxWidth = 'none'
+          maxW = undefined
+        } else {
+          img.classList.remove('fit')
+          // zoom out via max-width
+          maxW = maxW === undefined ? natW : maxW - step
+
+          img.setAttribute('data-maxW', maxW)
+          img.style.maxWidth = maxW + 'px'
+
+          const imgX = (((e.clientX - rect.left) / tmpX) * img.naturalWidth) - (window.innerWidth / 2)
+          const imgY = ((e.clientY - rect.top) / tmpY) * img.naturalHeight -(window.innerHeight / 2)
+          window.scrollTo(imgX, imgY)
+        }
+      })
+      const randomScroll = () => {
+        const x = Math.floor(Math.random() * (img.naturalWidth - window.innerWidth));
+        const y = Math.floor(Math.random() * (img.naturalHeight - window.innerHeight));
+        window.scrollTo(x, y);
+        // set opacity to 1 on img
+        img.style.opacity = 1
+      }
+      window.parent.postMessage('loading')
+    </script>
+  </body>
+</html>
