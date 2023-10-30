@@ -6,7 +6,7 @@
 
 @font-face {
   font-family: 'WonderType';
-  src: url('../assets/fonts/WonderType-Regular.otf');
+  src: url('/fonts/WonderType-Regular.otf');
 }
 
 html{
