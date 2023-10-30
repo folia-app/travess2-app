@@ -242,7 +242,7 @@ const store = createStore({
       if (now < start) {
         const premint = await nftContract.premint()
         if (now < premint) {
-          throw new Error(`Sorry, minting is not yet open. \nPlease wait until ${waitUntil}`)
+          throw new Error(`Sorry, minting is not yet open.`)
         } else {
 
           // NOTE: this is just to test the fake tree, TODO: remove before going live and replace with tree composed of merkleAddresses
