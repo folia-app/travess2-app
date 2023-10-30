@@ -110,13 +110,19 @@
 
   // minting
   const status = ref()
+  const quantity = ref('1')
+  const mintPrice = computed(() => store.state.price?.mul(quantity.value))
   store.dispatch('getPrice')
   store.dispatch('getMaxSupply')
+  store.dispatch('getDatePublic')
+  store.dispatch('getDatePremint')
+  const now = ref(Date.now())
+
 
   async function mint() {
     try {
       status.value = { message: 'confirm tx in your wallet...' }
-      await store.dispatch('mint', 1)
+      await store.dispatch('mint', quantity.value)
       status.value = null
     } catch (error) {
       let popup
@@ -139,8 +145,17 @@
 
   const txs = computed(() => store.state.pending.filter(tx => tx.name === 'mint'))
 
+  function updateNow () {
+    // update now every second if below public mint
+    now.value = Date.now()
+    if (!store.state.datePublic || now.value < store.state.datePublic) {
+      setTimeout(() => updateNow(), 1000)
+    }    
+  }
+
   onMounted(() => {
     intro()
+    updateNow()
   })
 </script>
 
@@ -219,19 +234,41 @@
       </button>)))
       <Glyphs subset="1" minmax="3,5" />
       <!-- (mint status) -->
-      <p v-if="status" class="inline" :class="{'text-red-600': status.type === 'error', 'text-lime-500': status.type === 'success', 'bg-white text-black': !status.type, 'animate-flash-slow': status.message.includes('...')}">
-        <template v-if="status.type === 'success'">
-          <span class="text-h4">your mint is highlighted below</span>
-        </template>
-        <template v-else>
-          {{ status.message }}
-        </template>
-      </p>
-      <Glyphs subset="1" minmax="3,5" />
+      <template v-if="status">
+        <p class="inline" :class="{'text-red-600': status.type === 'error', 'text-lime-500': status.type === 'success', 'bg-white text-black': !status.type, 'animate-flash-slow': status.message.includes('...')}">
+          <template v-if="status.type === 'success'">
+            <span class="text-h4">your mint is highlighted below</span>
+          </template>
+          <template v-else>
+            {{ status.message }}
+          </template>
+        </p>
+        <Glyphs subset="1" minmax="3,5" />
+      </template>
       <!-- (tx msgs...) -->
       <TxList :txs="txs" />
+      <!-- quantity -->
+      <fieldset class="inline">
+        <label for="quantity1" :class="[{'bg-white text-black': quantity === '1'}, 'px-[0.1em] cursor-pointer']">
+          <input type="radio" name="mint-quantity" id="quantity1" value="1" v-model="quantity" class="hidden">(1x)</label>
+        <label for="quantity2" :class="[{'bg-white text-black': quantity === '2'}, 'px-[0.1em] cursor-pointer']">
+          <input type="radio" name="mint-quantity" id="quantity2" value="2" v-model="quantity" class="hidden">(2x)</label>
+        <template v-if="now >= $store.state.datePublic">
+          <label for="quantity3" :class="[{'bg-white text-black': quantity === '3'}, 'px-[0.1em] cursor-pointer']">
+            <input type="radio" name="mint-quantity" id="quantity3" value="3" v-model="quantity" class="hidden">(3x)</label>
+        </template>
+      </fieldset>
+      <Glyphs subset="1" minmax="3,5" />
       <!-- price -->
-      <div class="inline-block">price: <span v-if="!$store.state.price" class="animate-blink">...</span><template v-else>{{ formatEther($store.state.price.toString()) }}</template> ETH </div>
+      <div class="inline-block">price: <span v-if="!mintPrice" class="animate-blink">...</span><template v-else>{{ formatEther(mintPrice.toString()) }}</template> ETH </div>
+
+      <!-- dev dates -->
+      <!-- <pre>
+        now: {{ now }}
+        premint: {{ new Date(store.state.datePremint) }}
+        public: {{ new Date(store.state.datePublic) }}
+      </pre> -->
+
       <Glyphs minmax="160,200" />
       <div class="hidden sm:inline"><Glyphs minmax="600,800" /></div>
       <!-- token list -->

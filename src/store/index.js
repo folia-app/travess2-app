@@ -56,6 +56,8 @@ const store = createStore({
       account: {},
       nfts: undefined,
       price: undefined,
+      datePremint: undefined,
+      datePublic: undefined,
       maxSupply: undefined,
       ensNames: {},
       pending: [
@@ -148,6 +150,12 @@ const store = createStore({
           state.pending.splice(index, 1)
         }
       }, 5000)
+    },
+    SET_DATE_PUBLIC (state, milliseconds) {
+      state.datePublic = milliseconds
+    },
+    SET_DATE_PREMINT (state, milliseconds) {
+      state.datePremint = milliseconds
     }
   },
   actions: {
@@ -215,7 +223,7 @@ const store = createStore({
           throw e
         })
     },
-    async mint({ getters, commit, dispatch }, amount = 1) {
+    async mint({ getters, dispatch }, amount = 1) {
       await dispatch('checkNetwork')
       const price = await dispatch('getPrice')
       const value = price.mul(amount)
@@ -228,20 +236,20 @@ const store = createStore({
       }
       if (userBalance.lt(value)) {
         const missing = getters.weiToETH(value.sub(userBalance)).substring(0, 6)
-        throw new Error(`Sorry, your account balance is ${missing.toString()} too low`)
+        throw new Error(`Sorry, your wallet balance is ${missing.toString()}ETH too low to mint ${amount} tokens.`)
       }
 
       const paused = await nftContract.paused()
       if (paused) {
         throw new Error(`Sorry, minting is paused at the moment.\nPlease check back later or come to the discord for more information.`)
       }
-
-      const start = await nftContract.startdate()
-      const waitUntil = new Date(start * 1000).toLocaleString()
-      const now = Math.floor(Date.now() / 1000)
-      if (now < start) {
-        const premint = await nftContract.premint()
-        if (now < premint) {
+      
+      const now = Date.now()
+      const datePublic = await dispatch('getDatePublic')
+      const waitUntil = new Date(datePublic).toLocaleString()
+      if (now < datePublic) {
+        const datePremint = await dispatch('getDatePremint')
+        if (now < datePremint) {
           throw new Error(`Sorry, minting is not yet open.`)
         } else {
 
@@ -321,7 +329,37 @@ const store = createStore({
       } catch (e) {
         console.error(e)
       }
-    }
+    },
+    async getDatePremint ({ state, commit }) {
+      // skip lookup if already past
+      if (state.datePremint && state.datePremint > new Date().getTime()) {
+        return state.datePremint
+      }
+      try {
+        const sec = await nftContract.premint()
+        const date = sec.toNumber() * 1000
+        commit('SET_DATE_PREMINT', date)
+        return 
+      } catch (e) {
+        console.error(e)
+        throw e
+      }
+    },
+    async getDatePublic ({ state, commit }) {
+      // skip lookup if already past
+      if (state.datePublic && state.datePublic > new Date().getTime()) {
+        return state.datePublic
+      }
+      try {
+        const sec = await nftContract.startdate()
+        const date = sec.toNumber() * 1000
+        commit('SET_DATE_PUBLIC', date)
+        return 
+      } catch (e) {
+        console.error(e)
+        throw e
+      }
+    },
   }
 })
 
