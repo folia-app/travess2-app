@@ -7,16 +7,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>Travess Smalley · Coordinates</title>
     <!-- web3/vite polyfills -->
-  <!-- <script>window.global = window;</script> -->
-    <!-- <script type="module">
-                    import process from "process";
-                    import { Buffer } from "buffer";
-                    import EventEmitter from "events";
-                    
-                    window.Buffer = Buffer;
-                    window.process = process;
-                    window.EventEmitter = EventEmitter;
-                </script> -->
+    <!-- <script>window.global = window;console.log(window.Buffer)</script> -->
+    <script type="module">
+      // import process from "process";
+      import { Buffer } from "buffer";
+      // import EventEmitter from "events";
+      
+      globalThis.Buffer = Buffer;
+      // window.process = process;
+      // window.EventEmitter = EventEmitter;
+    </script>
 
     <!-- <style>
                   #loading svg path {

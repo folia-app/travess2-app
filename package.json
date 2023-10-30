@@ -13,6 +13,7 @@
     "@web3-onboard/core": "^2.20.4",
     "@web3-onboard/injected-wallets": "^2.10.2",
     "@web3-onboard/walletconnect": "^2.4.2-alpha.1",
+    "buffer": "^6.0.3",
     "ethers": "^5.7.2",
     "merkletreejs": "^0.3.10",
     "nft-contracts": "https://github.com/folia-app/travess-contracts",
