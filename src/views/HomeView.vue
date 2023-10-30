@@ -273,7 +273,7 @@
       <Glyphs minmax="120,160" />
       <a :href="$store.getters.etherscanLink()" class="btn-underline" target="_blank">contract</a>
       <Glyphs minmax="10,20" />
-      <a :href="$store.getters.openSeaLink({})" class="btn-underline" target="_blank">opensea</a>
+      <a href="https://opensea.io/collection/coordinates-travess-smalley" class="btn-underline" target="_blank">opensea</a>
       <Glyphs minmax="20,30" />
       <a href="https://folia.app" class="btn-highlight">exit</a>
     </template>
