@@ -3331,7 +3331,7 @@ next-tick@1, next-tick@^1.1.0:
 
 "nft-contracts@https://github.com/folia-app/travess-contracts":
   version "1.0.0"
-  resolved "https://github.com/folia-app/travess-contracts#5c77cec9fa41f90fc36eed713feb5fe9090b456b"
+  resolved "https://github.com/folia-app/travess-contracts#af97a07f7153fd7593b17d03e0c820fd52691c42"
 
 node-fetch@^2.6.12:
   version "2.7.0"
