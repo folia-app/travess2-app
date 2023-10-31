@@ -89,6 +89,7 @@ const store = createStore({
     ethToWei: () => (eth) => ethers.utils.parseUnits(eth).toString() ?? '-',
     weiToETH: () => wei => ethers.utils.formatUnits(wei) ?? '...',
     mintCount: (state) => state.nfts?.length,
+    isSoldOut: (state) => state.maxSupply && state.nfts?.length >= state.maxSupply,
     contractAddress: () => NFTContractDeploy.networks[network].address,
     etherscanLink: (state, getters) => hash => {
       let url = `https://${state.network != 'homestead' ? state.network + '.' : ''}etherscan.io`

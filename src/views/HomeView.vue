@@ -102,6 +102,7 @@
   store.dispatch('getDatePublic')
   store.dispatch('getDatePremint')
   const now = ref(Date.now())
+  const isSoldOut = computed(() => store.getters.isSoldOut === true)
 
   async function mint() {
     try {
@@ -214,38 +215,47 @@
       <div class="hidden sm:inline"><Glyphs minmax="400,600" /></div>
       <Glyphs subset="1" />
       <!-- mint btn -->
-      (((<button :class="['inline-block bg-white text-black px-[0.2em]' , {'animate-flash-slow': isConnected && !status && !txs.length, 'btn-flash-slow': !status}]" @click="mint">
+      (((<button :class="['inline-block px-[0.2em]' , {'animate-flash-slow': isConnected && !status && !txs.length && !isSoldOut, 'btn-flash-slow': !isSoldOut && !status, 'line-through': isSoldOut, 'bg-white text-black': !isSoldOut}]" @click="mint" :disabled="isSoldOut">
         MINT
       </button>)))
-      <Glyphs subset="1" minmax="3,5" />
-      <!-- (mint status) -->
-      <template v-if="status">
-        <p class="inline" :class="{'text-red-600': status.type === 'error', 'text-lime-500': status.type === 'success', 'bg-white text-black': !status.type, 'animate-flash-slow': status.message.includes('...')}">
-          <template v-if="status.type === 'success'">
-            <span class="text-h4">your mint is highlighted below</span>
-          </template>
-          <template v-else>
-            {{ status.message }}
-          </template>
-        </p>
+      <!-- (sold out) -->
+      <template v-if="isSoldOut">
+        (SOLD-OUT)
+        <Glyphs subset="1" minmax="2,3" />
+        <a href="https://opensea.io/collection/coordinates-travess-smalley" class="underline btn-flash-slow" target="_blank" rel="noopener noreferrer">view on secondary</a>
+      </template>      
+      <!-- (minting options) -->
+      <template v-else>
         <Glyphs subset="1" minmax="3,5" />
-      </template>
-      <!-- (tx msgs...) -->
-      <TxList :txs="txs" />
-      <!-- quantity -->
-      <fieldset class="inline">
-        <label for="quantity1" :class="[{'bg-white text-black': quantity === '1'}, 'px-[0.1em] cursor-pointer']">
-          <input type="radio" name="mint-quantity" id="quantity1" value="1" v-model="quantity" class="hidden">(1x)</label>
-        <label for="quantity2" :class="[{'bg-white text-black': quantity === '2'}, 'px-[0.1em] cursor-pointer']">
-          <input type="radio" name="mint-quantity" id="quantity2" value="2" v-model="quantity" class="hidden">(2x)</label>
-        <template v-if="now >= $store.state.datePublic">
-          <label for="quantity3" :class="[{'bg-white text-black': quantity === '3'}, 'px-[0.1em] cursor-pointer']">
-            <input type="radio" name="mint-quantity" id="quantity3" value="3" v-model="quantity" class="hidden">(3x)</label>
+        <!-- (mint status) -->
+        <template v-if="status">
+          <p class="inline" :class="{'text-red-600': status.type === 'error', 'text-lime-500': status.type === 'success', 'bg-white text-black': !status.type, 'animate-flash-slow': status.message.includes('...')}">
+            <template v-if="status.type === 'success'">
+              <span class="text-h4">your mint is highlighted below</span>
+            </template>
+            <template v-else>
+              {{ status.message }}
+            </template>
+          </p>
+          <Glyphs subset="1" minmax="3,5" />
         </template>
-      </fieldset>
-      <Glyphs subset="1" minmax="3,5" />
-      <!-- price -->
-      <div class="inline-block">price: <span v-if="!mintPrice" class="animate-blink">...</span><template v-else>{{ formatEther(mintPrice.toString()) }}</template> ETH </div>
+        <!-- (tx msgs...) -->
+        <TxList :txs="txs" />
+        <!-- quantity -->
+        <fieldset class="inline">
+          <label for="quantity1" :class="[{'bg-white text-black': quantity === '1'}, 'px-[0.1em] cursor-pointer']">
+            <input type="radio" name="mint-quantity" id="quantity1" value="1" v-model="quantity" class="hidden">(1x)</label>
+          <label for="quantity2" :class="[{'bg-white text-black': quantity === '2'}, 'px-[0.1em] cursor-pointer']">
+            <input type="radio" name="mint-quantity" id="quantity2" value="2" v-model="quantity" class="hidden">(2x)</label>
+          <template v-if="now >= $store.state.datePublic">
+            <label for="quantity3" :class="[{'bg-white text-black': quantity === '3'}, 'px-[0.1em] cursor-pointer']">
+              <input type="radio" name="mint-quantity" id="quantity3" value="3" v-model="quantity" class="hidden">(3x)</label>
+          </template>
+        </fieldset>
+        <Glyphs subset="1" minmax="3,5" />
+        <!-- price -->
+        <div class="inline-block">price: <span v-if="!mintPrice" class="animate-blink">...</span><template v-else>{{ formatEther(mintPrice.toString()) }}</template> ETH </div>
+      </template>
 
       <!-- dev dates -->
       <!-- <pre>
@@ -264,7 +274,7 @@
         <ul class="inline">
           <!-- tokens... -->
           <template v-for="n in maxSupply" :key="'thumb'+n">
-            <Glyphs minmax="70,110"/>
+            <Glyphs minmax="80,120"/>
             <!-- TODO add new mint highlight logic -->
             <li :class="['inline', {'bg-white text-black': recentMints.includes(n.toString()) }]">
               
