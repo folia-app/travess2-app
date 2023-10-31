@@ -1,11 +1,13 @@
 <script setup>
 import { useRoute } from 'vue-router';
 import { onMounted, onUnmounted } from 'vue'
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import { ipfsIframe } from '../plugins/ipfs';
+import store from '../store';
 
 const route = useRoute()
-const tokenId = Number(route.params.tokenId)
+const tokenId = route.params.tokenId
+const isNotMinted = computed(() => !store.state.nfts ? undefined : store.state.nfts.find(token => token.tokenId === tokenId) === undefined)
 
 const iframePath = import.meta.env.VITE_DEV_IFRAME_PATH ?? ipfsIframe
 const { VITE_IPFS_HASH_IMAGES } = import.meta.env
@@ -38,11 +40,18 @@ onUnmounted(() => {
     <!-- inset media from window edge -->
     <div class="relative w-full z-10" @click.stop>
       <!-- (loading) -->
-      <div v-if="loading" class="absolute overlay flex items-center justify-center bg-black">
-        <span class="animate-blink">...</span>
+      <div class="absolute overlay flex items-center justify-center bg-black" style="font-family:monospace; font-size:14px">
+        <template v-if="isNotMinted === true">
+          #{{ ('000' + tokenId).slice(-3) }} is not yet minted!
+        </template>
+        <template v-else-if="isNotMinted === undefined || loading">
+          <span class="animate-blink">...</span>
+        </template>
       </div>
 
-      <iframe class="absolute overlay" :src="`${iframePath}#${tokenId}-${VITE_IPFS_HASH_IMAGES}`" @load="onIframeLoad" />
+      <template v-if="isNotMinted === false">
+        <iframe class="absolute overlay" :src="`${iframePath}#${tokenId}-${VITE_IPFS_HASH_IMAGES}`" @load="onIframeLoad" />
+      </template>
     </div>
   </article>
 </template>
