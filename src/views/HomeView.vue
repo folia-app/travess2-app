@@ -7,24 +7,12 @@
   import { formatEther } from 'ethers/lib/utils';
   import TxList from '../components/TxList.vue';
   import SvgFoliaLogo from '../components/SvgFoliaLogo.vue';
-  import { ipfsImage } from '../plugins/ipfs'
-
-  // rand lat/long
-  function getRandomInRange (from, to, fixed) {
-    return (Math.random() * (to - from) + from).toFixed(fixed) * 1;
-    // .toFixed() returns string, so ' * 1' is a trick to convert to number
-  }
-  function randGPS () {
-    return getRandomInRange(-180, 180, 8)
-  }
+  import tokenTitles from '../metadata/titles.js'
 
   const isConnected = computed(() => store.getters.address)
   const count = computed(() => store.getters.mintCount)
   const maxSupply = computed(() => store.state.maxSupply)
   const nfts = computed(() => store.state.nfts)
-  // demo
-  // const connectedAccount = 'demo.eth'
-  const tokensMeta = Array(139).fill(0).map(() => ({ latlong: `${randGPS()}, ${randGPS()}` }))
   const getToken = id => store.state.nfts?.find(token => token.tokenId === id.toString())
 
   // highlight mints
@@ -40,7 +28,6 @@
 
   // intro sequence
   const loadingCount = ref(sessionStorage.getItem('loaded') ? 999 : 0)
-  
   const intro = () => {
     const count = () => {
       loadingCount.value++
@@ -100,8 +87,6 @@
     }
   }
 
-  toggleScrollLock(route.name)
-
   // last viewed token overlay
   let lastViewed = ref()
   watch(() => route.params.tokenId, (id, prevId) => {
@@ -117,7 +102,6 @@
   store.dispatch('getDatePublic')
   store.dispatch('getDatePremint')
   const now = ref(Date.now())
-
 
   async function mint() {
     try {
@@ -156,6 +140,7 @@
   onMounted(() => {
     intro()
     updateNow()
+    toggleScrollLock(route.name)
   })
 </script>
 
@@ -279,14 +264,14 @@
         <ul class="inline">
           <!-- tokens... -->
           <template v-for="n in maxSupply" :key="'thumb'+n">
-            <Glyphs minmax="60,100"/>
+            <Glyphs minmax="70,110"/>
             <!-- TODO add new mint highlight logic -->
             <li :class="['inline', {'bg-white text-black': recentMints.includes(n.toString()) }]">
               
               <template v-if="n <= count">
                 <!-- minted thumb -->
                 <router-link :to="`/tokens/${getToken(n).tokenId}`" :data-no="toolTipToken" class="group btn-highlight" :class="{'ring-1 ring-white': lastViewed === getToken(n).tokenId}" @mouseenter="onLinkMouseEnter(n)" @mousemove="moveTooltip" @mouseleave="hideTooltip">
-                  ({{ tokensMeta[n-1].latlong }})
+                  ({{ tokenTitles[n].replace(',', ', ') }})
                   <img class="inline-block h-[1.1em] transform -translate-y-[0.1em] align-middle mouse:group-hover:outline" :src="`/thumbs/tiny/${n}.png.webp`" />
                   #{{ ('000' + n).slice(-3) }}
                 </router-link> 
