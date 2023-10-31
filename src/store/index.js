@@ -333,7 +333,7 @@ const store = createStore({
     },
     async getDatePremint ({ state, commit }) {
       // skip lookup if already past
-      if (state.datePremint && state.datePremint > new Date().getTime()) {
+      if (state.datePremint) {
         return state.datePremint
       }
       try {
@@ -348,7 +348,7 @@ const store = createStore({
     },
     async getDatePublic ({ state, commit }) {
       // skip lookup if already past
-      if (state.datePublic && state.datePublic > new Date().getTime()) {
+      if (state.datePublic) {
         return state.datePublic
       }
       try {
