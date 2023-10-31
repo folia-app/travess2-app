@@ -12,7 +12,7 @@ watch(() => route.name, (to, from) => {
 </script>
 
 <template>
-  <div class="text-xl leading-[1.3] lg:leading-[1.05] tracking-wide">
+  <div class="text-xl leading-[1.25] lg:leading-[1.05] tracking-wide">
     <router-view v-slot="{ Component }">
       <component :is="Component" />
     </router-view>
