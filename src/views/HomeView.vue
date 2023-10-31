@@ -282,8 +282,8 @@
                 <!-- minted thumb -->
                 <router-link :to="`/tokens/${getToken(n).tokenId}`" :data-no="toolTipToken" class="group btn-highlight" :class="{'ring-1 ring-white': lastViewed === getToken(n).tokenId}" @mouseenter="onLinkMouseEnter(n)" @mousemove="moveTooltip" @mouseleave="hideTooltip">
                   ({{ tokenTitles[n].replace(',', ', ') }})
-                  <!-- <img class="inline-block h-[1.1em] transform -translate-y-[0.1em] align-middle mouse:group-hover:outline" :src="`/thumbs/tiny/${n}.png.webp`" /> -->
-                  <div class="inline-flex items-center justify-center aspect-card border h-[1.1em] align-middle bg-black"></div>
+                  <img class="inline-block h-[1.1em] transform -translate-y-[0.1em] align-middle mouse:group-hover:outline" :src="`/thumbs/tiny/${n}.jpg`" />
+                  <!-- <div class="inline-flex items-center justify-center aspect-card border h-[1.1em] align-middle bg-black"></div> -->
                   #{{ ('000' + n).slice(-3) }}
                 </router-link> 
                 <!-- / -->
@@ -314,7 +314,7 @@
     <!-- link tooltip -->
     <div ref="tooltip" :class="['fixed z-10 pointer-events-none py-[1em] w-auto h-auto transition-opacity duration-300', {'opacity-0': !toolTipToken}]" :style="toolTipToken ? toolTipPosition : ''">
       <!-- (preview img) -->
-      <!-- <img v-if="typeof toolTipToken === 'number'" :src="`/thumbs/${toolTipToken}.jpg`" class="block max-w-[240px] max-h-[240px]" /> -->
+      <img v-if="typeof toolTipToken === 'number'" :src="`/thumbs/${toolTipToken}.jpg`" class="block max-w-[240px] max-h-[240px]" />
       <!-- (opensea link tip) -->
       <div class="bg-white text-black px-[0.2em] whitespace-nowrap" :class="{'hidden': toolTipToken !== 'view-owner'}">view on OpenSea</div>
       <!-- <div class="bg-white text-black px-[0.2em] whitespace-nowrap" :class="{'hidden': !((toolTipToken ?? '').toString().includes('view-token')) }">view #{{ ((toolTipToken ?? '').toString().split(':')[1] ?? '?') }} on OpenSea</div> -->
