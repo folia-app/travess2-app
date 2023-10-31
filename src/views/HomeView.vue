@@ -27,7 +27,7 @@
   })
 
   // intro sequence
-  const loadingCount = ref(sessionStorage.getItem('loaded') ? 999 : 0)
+  const loadingCount = ref(999) // ref(sessionStorage.getItem('loaded') ? 999 : 0)
   const intro = () => {
     const count = () => {
       loadingCount.value++
