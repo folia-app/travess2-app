@@ -1,5 +1,5 @@
 <script setup>
-  import { RouterLink, RouterView, useRoute } from 'vue-router'
+  import { RouterView, useRoute } from 'vue-router'
   import Glyphs from '../components/GlyphsRand.vue'
   import { computed, onMounted, ref, watch } from 'vue';
   import store from '../store';
@@ -7,13 +7,12 @@
   import { formatEther } from 'ethers/lib/utils';
   import TxList from '../components/TxList.vue';
   import SvgFoliaLogo from '../components/SvgFoliaLogo.vue';
-  import tokenTitles from '../metadata/titles.js'
+  import NFTThumb from '../components/NFTThumb.vue';
 
   const isConnected = computed(() => store.getters.address)
   const count = computed(() => store.getters.mintCount)
   const maxSupply = computed(() => store.state.maxSupply)
   const nfts = computed(() => store.state.nfts)
-  const getToken = id => store.state.nfts?.find(token => token.tokenId === id.toString())
 
   // highlight mints
   const recentMints = ref([])
@@ -274,26 +273,11 @@
         <ul class="inline">
           <!-- tokens... -->
           <template v-for="n in maxSupply" :key="'thumb'+n">
-            <Glyphs minmax="80,120"/>
-            <!-- TODO add new mint highlight logic -->
-            <li :class="['inline', {'bg-white text-black': recentMints.includes(n.toString()) }]">
-              
+            <Glyphs minmax="90,130"/>
+            <li :class="['inline']">
               <template v-if="n <= count">
                 <!-- minted thumb -->
-                <router-link :to="`/tokens/${getToken(n).tokenId}`" :data-no="toolTipToken" class="group btn-highlight" :class="{'ring-1 ring-white': lastViewed === getToken(n).tokenId}" @mouseenter="onLinkMouseEnter(n)" @mousemove="moveTooltip" @mouseleave="hideTooltip">
-                  ({{ tokenTitles[n].replace(',', ', ') }})
-                  <img class="inline-block h-[1.1em] transform -translate-y-[0.1em] align-middle mouse:group-hover:outline" :src="`/thumbs/tiny/${n}.jpg`" />
-                  <!-- <div class="inline-flex items-center justify-center aspect-card border h-[1.1em] align-middle bg-black"></div> -->
-                  #{{ ('000' + n).slice(-3) }}
-                </router-link> 
-                <!-- / -->
-                <!-- token link -->
-                <!-- <a :href="$store.getters.openSeaLink({ account: getToken(n).owner })" :class="['group btn-underline']" target="_blank" rel="noopener noreferrer" @mouseenter="onLinkMouseEnter('view-token:' + n)" @mousemove="moveTooltip" @mouseleave="hideTooltip">opensea</a> -->
-                /
-                <!-- owner link -->
-                <a :href="$store.getters.openSeaLink({ tokenId: getToken(n).tokenId })" :class="['btn-underline', {'bg-white text-black': getToken(n).owner.toLowerCase() === $store.getters.address?.toLowerCase()}]" target="_blank" rel="noopener noreferrer" @mouseenter="onLinkMouseEnter('view-owner')" @mousemove="moveTooltip" @mouseleave="hideTooltip">
-                  <Addr :address="getToken(n).owner" />
-                </a>
+                <NFTThumb :id="n" :outline="n === lastViewed" @mouseenter="onLinkMouseEnter" @mousemove="moveTooltip" @mouseleave="hideTooltip" />
               </template>
               <template v-else>
                 <!-- unminted -->
@@ -303,7 +287,8 @@
           </template>
         </ul>
       </template>
-      <Glyphs minmax="120,160" />
+
+      <Glyphs minmax="800,1000" />
       <a :href="$store.getters.etherscanLink()" class="btn-underline" target="_blank">contract</a>
       <Glyphs minmax="10,20" />
       <a href="https://opensea.io/collection/coordinates-travess-smalley" class="btn-underline" target="_blank">opensea</a>

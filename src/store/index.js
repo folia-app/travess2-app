@@ -2,7 +2,6 @@ import { createStore } from 'vuex'
 import { ethers } from 'ethers'
 import { MerkleTree } from 'merkletreejs';
 import Contracts from 'nft-contracts'
-
 import { init, getProvider, getNftContract, NFTContractDeploy } from './contracts'
 import onboard from './onboard'
 import networks from './networks'
@@ -42,9 +41,18 @@ state.subscribe((update) => {
   }
 })
 
-
 const updateContracts = async (etherProvider) => {
   nftContract = getNftContract(etherProvider)
+}
+
+// load saved ensNames
+let ensNames = {}
+try {
+  ensNames = JSON.parse(sessionStorage.getItem('ensNames')) || {}
+  if (ensNames.length !== undefined) throw new Error('malformed ensNames')
+} catch (_) {
+  sessionStorage.removeItem('ensNames')
+  ensNames = {}
 }
 
 const store = createStore({
@@ -59,7 +67,7 @@ const store = createStore({
       datePremint: undefined,
       datePublic: undefined,
       maxSupply: undefined,
-      ensNames: {},
+      ensNames,
       pending: [
         // {
         //   txHash: 'asdf',
@@ -134,6 +142,8 @@ const store = createStore({
     },
     ADD_ENS_NAME(state, { addr, result }) {
       state.ensNames[addr.toLowerCase()] = result
+      // save to session storage for future lookup
+      sessionStorage.setItem('ensNames', JSON.stringify(state.ensNames))
     },
     ADD_PENDING_TX(state, pendingTx) {
       state.pending.push(pendingTx)
@@ -162,18 +172,16 @@ const store = createStore({
   actions: {
     async ensName({ state, commit }, addr) {
       addr = addr.toLowerCase()
-      if (state.ensNames[addr]) {
+
+      if (state.ensNames[addr] !== undefined) {
         return state.ensNames[addr]
       }
 
       try {
         const mainnetProvider = await getProvider({ name: 'homestead' })
         const result = await mainnetProvider.lookupAddress(addr)
-        if (result) {
-          commit('ADD_ENS_NAME', { addr, result })
-          return result
-        }
-        return null
+        commit('ADD_ENS_NAME', { addr, result }) // save even null
+        return result
       } catch (_) { }
     },
     async checkNetwork({ getters, dispatch }) {

@@ -1,6 +1,5 @@
 import store from './index'
 import { ethers } from 'ethers'
-
 import Contracts from 'nft-contracts'
 
 const network = import.meta.env.VITE_NETWORK_NAME
@@ -36,21 +35,6 @@ async function getProvider({ name }) {
 
 async function init() {
   let provider = await getProvider({})
-
-  // swap-in window provider if on correct network
-  if (window.ethereum) {
-    const windowProvider = new ethers.providers.Web3Provider(window.ethereum)
-
-    try {
-      const { name } = await windowProvider.getNetwork()
-      if (name === import.meta.env.VITE_NETWORK_NAME) {
-        provider = windowProvider
-      }
-    } catch (e) {
-      // console.error(e)
-    }
-  }
-
   let nftContract = getNftContract(provider)
   // let metadataContract = new ethers.Contract(Metadata.networks[network].address, Metadata.abi, provider)
 
@@ -60,6 +44,7 @@ async function init() {
       events.forEach(processNFTTransfer)
     })
 
+  // listen for transfers
   nftContract.on('Transfer', wrappedProcessNFTTransfer)
 
   // metadataContract.baseURI().then((baseURI) => {
@@ -69,11 +54,9 @@ async function init() {
 
 // helpers
 
-
 function wrappedProcessNFTTransfer(...args) {
   processNFTTransfer({ args })
 }
-
 
 function processNFTTransfer(event) {
   var from = event.args[0]

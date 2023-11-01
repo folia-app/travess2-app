@@ -1,24 +1,29 @@
 <template>
-  <li class="nft-thumb relative group">
-    <router-link class="block mouse:hover:ring-8 mouse:hover:ring-zinc-200" :to="{name: 'token', params: {tokenId: id}}">
-      <figure class="relative aspect-square cursor-pointer bg-pencil-6h">
-        <NFTThumbImage :id="props.id" :key="props.id"></NFTThumbImage>
-        <!-- <NFTThumbIframe :id="props.id" :key="props.id" /> -->
-        <div class="absolute bottom-0 left-0 rounded-xl p-1.5 leading-tight" :class="{'text-white': meta.style !== 'debug'}">
-          {{meta.name}}
-        </div>
-      </figure>
-    </router-link>
-  </li>
+  <router-link :to="`/tokens/${props.id}`" class="group btn-highlight" :class="{'ring-1 ring-white': props.outline}" @mouseenter="$emit('mouseenter', props.id)" @mousemove="e => $emit('mousemove', e)" @mouseleave="$emit('mouseleave')">
+    ({{ tokenTitles[props.id].replace(',', ', ') }})
+    <img class="inline-block h-[1.1em] transform -translate-y-[0.1em] align-middle mouse:group-hover:outline" :src="`/thumbs/tiny/${props.id}.jpg`" />
+    #{{ ('000' + props.id).slice(-3) }}
+  </router-link> 
+  <!-- / -->
+  <!-- token link -->
+  <!-- <a :href="$store.getters.openSeaLink({ account: token.owner })" :class="['group btn-underline']" target="_blank" rel="noopener noreferrer" @mouseenter="mouseenter('view-token:' + props.id)" @mousemove="moveTooltip" @mouseleave="hideTooltip">opensea</a> -->
+  /
+  <!-- owner link -->
+  <a :href="$store.getters.openSeaLink({ tokenId: props.id })" :class="['btn-underline', {'bg-white text-black': token?.owner.toLowerCase() === $store.getters.address?.toLowerCase()}]" target="_blank" rel="noopener noreferrer" @mouseenter="$emit('mouseenter', 'view-owner')" @mousemove="e => $emit('mousemove', e)" @mouseleave="$emit('mouseleave')">
+    <Addr :address="token.owner" />
+  </a>
 </template>
 
 <script setup>
-import { computed } from 'vue'
-import NFTThumbImage from './NFTThumbImage.vue'
-// import NFTThumbIframe from './NFTThumbIframe.vue'
+import { RouterLink } from 'vue-router'
+import { computed, watch } from 'vue'
 import store from '@/store'
+import tokenTitles from '../metadata/titles.js'
+import Addr from '../components/Addr.vue'
 
-const props = defineProps(['id'])
+const props = defineProps(['id', 'outline'])
+const emit = defineEmits(['mouseenter', 'mousemove', 'mouseleave'])
 
-const meta = computed(() => store.state.nfts.find(v => v.tokenId.toString() === props.id.toString()))
+const token = computed(() => store.state.nfts.find(nft => nft.tokenId.toString() === props.id.toString()))
+watch(token, () => console.log(props.id))
 </script>
