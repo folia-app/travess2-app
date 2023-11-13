@@ -277,7 +277,7 @@
             <li :class="['inline']">
               <template v-if="n <= count">
                 <!-- minted thumb -->
-                <NFTThumb :id="n" :outline="n === lastViewed" @mouseenter="onLinkMouseEnter" @mousemove="moveTooltip" @mouseleave="hideTooltip" />
+                <NFTThumb :id="n" :outline="n === Number(lastViewed)" @mouseenter="onLinkMouseEnter" @mousemove="moveTooltip" @mouseleave="hideTooltip" />
               </template>
               <template v-else>
                 <!-- unminted -->
