@@ -26,13 +26,13 @@
   })
 
   // intro sequence
-  const loadingCount = ref(999) // ref(sessionStorage.getItem('loaded') ? 999 : 0)
+  const loadingCount = ref(localStorage.getItem('loaded') ? 999 : 0)
   const intro = () => {
     const count = () => {
       loadingCount.value++
       if (loadingCount.value > 23) {
         // skip next load
-        sessionStorage.setItem('loaded', true)
+        localStorage.setItem('loaded', true)
         return
       }
       setTimeout(count, 300)
