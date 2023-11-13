@@ -35,7 +35,7 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <article class="fixed z-30 overlay bg-[rgba(0,0,0,0.85)] overflow-hidden p-12 flex cursor-pointer">
+  <article class="fixed z-30 overlay bg-[rgba(0,0,0,0.85)] overflow-hidden p-9 md:p-12 flex cursor-pointer">
     <button ref="closeOverlayButton" class="absolute overlay outline-none" @click="$router.go(-1)" aria-label="Close token view"></button>
     <!-- inset media from window edge -->
     <div class="relative w-full z-10" @click.stop>
