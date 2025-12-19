@@ -66,7 +66,6 @@
     <img id="img">
     <div id="status" class="animate-blink">loading...</div>
     <script>
-      const ipfsGateway = 'https://folia.mypinata.cloud/ipfs/'
       const img = document.getElementById("img")
       const statusEl = document.getElementById('status')
       
@@ -87,8 +86,23 @@
 
         img.addEventListener('load', onImgLoad)
         img.addEventListener('error', onImgError)
+        
+        // default: images are served by the same ipfs origin
+        let ipfsPath = window.location.origin + '/ipfs/'
+        
+        // see if ipfspath is specified in the url
+        try {
+          const url = new URL(window.location.href)
+          if (url.searchParams.get('ipfspath')) {
+            ipfsPath = decodeURIComponent(url.searchParams.get('ipfspath'))
+          }
+        } catch (e) {
+          console.error('error parsing url:', e)
+        }
+        
         // set source after listeners are attached
-        img.src = ipfsGateway + ipfsHash + '/' + id + '.png'
+        img.src = ipfsPath + ipfsHash + '/' + id + '.png'
+
         window.parent.postMessage('loading')
       }
       
@@ -105,7 +119,7 @@
 
       function onImgError (e) {
         console.error('error loading image:', e)
-        updateStatus(`error loading token #${id}<br>(does it exist?)`)
+        updateStatus(`error loading token #${id}`)
       }
       
       function onImgClick (e) {
