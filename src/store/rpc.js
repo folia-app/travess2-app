@@ -67,6 +67,38 @@ export async function getAllLogs (address, abi, filterName, fromBlock = 0) {
 }
 
 /**
+ * Transfer events, or something the caller can treat as them.
+ *
+ * Wide log queries are the fast path but only some endpoints allow them. When
+ * none will, this falls back to enumerating current holders and synthesising a
+ * mint-shaped event per token — from = the zero address, to = the current owner.
+ * A listing built by replaying these arrives at the same state it would have
+ * reached by replaying the real history, because the only thing it derives from
+ * a transfer is who holds the token now.
+ *
+ * What it does not give you is history: no previous owners, no timestamps, no
+ * ordering. Anything that needs those must use `mode` to tell the difference
+ * rather than assume.
+ *
+ * This is the redundancy that matters. Enumeration is plain eth_call work, which
+ * every endpoint in the pool serves, so losing the one provider that answers
+ * whole-range log queries degrades speed and detail — not correctness of the
+ * listing.
+ */
+export async function getTransferEvents (address, abi, fromBlock = 0) {
+  try {
+    const { logs, via } = await getAllLogs(address, abi, 'Transfer', fromBlock)
+    return { events: logs, via, mode: 'logs' }
+  } catch (logErr) {
+    const holders = await enumerateOwners(address, abi)
+    const events = holders.map(({ tokenId, owner }) => ({
+      args: [ethers.constants.AddressZero, owner, tokenId]
+    }))
+    return { events, via: 'enumeration', mode: 'owners', logError: logErr.message }
+  }
+}
+
+/**
  * Current holders, without reading logs at all.
  *
  * The fallback when no endpoint will serve a whole-range log query. Returns

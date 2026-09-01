@@ -1,7 +1,7 @@
 import store from './index'
 import { ethers } from 'ethers'
 import Contracts from 'nft-contracts'
-import { getAllLogs, readProvider } from './rpc'
+import { getTransferEvents, readProvider } from './rpc'
 
 const network = import.meta.env.VITE_NETWORK_NAME
 
@@ -41,8 +41,8 @@ async function init() {
   // let metadataContract = new ethers.Contract(Metadata.networks[network].address, Metadata.abi, provider)
 
   // get all previous Transfer events from NFTContract
-  getAllLogs(NFTContractDeploy.networks[network].address, NFTContractDeploy.abi, 'Transfer')
-    .then(({ logs: events }) => {
+  getTransferEvents(NFTContractDeploy.networks[network].address, NFTContractDeploy.abi)
+    .then(({ events }) => {
       events.forEach(processNFTTransfer)
     })
     .catch((e) => {
