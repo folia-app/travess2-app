@@ -51,6 +51,11 @@ class PooledProvider extends ethers.providers.JsonRpcProvider {
   }
 
   async send (method, params) {
+    // super() kicks off ethers' network detection, and that calls send() before
+    // the subclass fields below exist. In node the timing hid it; in a browser
+    // it left the provider dead and the page silently empty. Fall back to plain
+    // behaviour until the pool is initialised.
+    if (!this._urls) return super.send(method, params)
     await this._acquire()
     try {
       let lastErr
