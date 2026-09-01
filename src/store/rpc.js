@@ -81,7 +81,7 @@ class PooledProvider extends ethers.providers.JsonRpcProvider {
         }
         // backoff with jitter; every attempt also moves to the next endpoint
         const wait = Math.min(2000, 150 * 2 ** attempt) + Math.random() * 120
-        await new Promise((r) => setTimeout(r, wait))
+        await new Promise((resolve) => setTimeout(resolve, wait))
       }
       throw lastErr || new Error('all endpoints failed')
     } finally {
@@ -147,12 +147,13 @@ export async function anyOf (fn) {
  */
 export async function getAllLogs (address, abi, filterName, fromBlock = 0) {
   const errors = []
-  for (const p of providers()) {
+  for (const url of urls()) {
+    const p = new PooledProvider([url], { concurrency: 2 })
     try {
       const c = new ethers.Contract(address, abi, p)
       const logs = await c.queryFilter(c.filters[filterName](), fromBlock)
-      return { logs, via: p.connection.url, mode: 'wide' }
-    } catch (e) { errors.push(`${p.connection.url}: ${e.message.slice(0, 60)}`) }
+      return { logs, via: url, mode: 'wide' }
+    } catch (e) { errors.push(`${url}: ${e.message.slice(0, 60)}`) }
   }
   throw new Error('no endpoint served the full log range — ' + errors.slice(0, 2).join(' | '))
 }
@@ -198,7 +199,9 @@ export async function getTransferEvents (address, abi, fromBlock = 0) {
  * above serve.
  */
 export async function enumerateOwners (address, abi, batch = 25) {
-  return anyOf(async (p) => {
+  // Through the pool, not a raw endpoint: this is two calls per token, so a
+  // few hundred for a full collection, and unthrottled that is an instant 429.
+  const run = async (p) => {
     const c = new ethers.Contract(address, abi, p)
     const total = (await c.totalSupply()).toNumber()
     const ids = []
@@ -213,5 +216,6 @@ export async function enumerateOwners (address, abi, batch = 25) {
       owners.forEach((owner, k) => out.push({ tokenId: ids[i + k], owner }))
     }
     return out
-  })
+  }
+  return run(readProvider())
 }
