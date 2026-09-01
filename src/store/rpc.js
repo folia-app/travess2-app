@@ -20,7 +20,21 @@ import { ethers } from 'ethers'
  *   - 429 and 5xx retry with exponential backoff and jitter, moving to the next
  *     endpoint each attempt
  */
-class PooledProvider extends ethers.providers.JsonRpcProvider {
+/*
+ * StaticJsonRpcProvider, not JsonRpcProvider, and the difference is large.
+ *
+ * Plain JsonRpcProvider re-runs network detection constantly: measured over
+ * five ENS reverse lookups it sent 21 eth_chainId calls out of 34 requests
+ * total. The chain id of an endpoint pinned to mainnet cannot change, which is
+ * exactly the case StaticJsonRpcProvider exists for -- the same five lookups
+ * then cost 1 eth_chainId out of 14 requests, and finished in 1.4s instead of
+ * 3.0s, with identical results.
+ *
+ * On the coordinates grid that overhead was 99 of 220 requests on a single
+ * page load: nearly half the traffic spent asking six endpoints, over and
+ * over, which chain they were.
+ */
+class PooledProvider extends ethers.providers.StaticJsonRpcProvider {
   constructor (urls, { concurrency = 4, retries = 4 } = {}) {
     super(urls[0])
     this._urls = urls.slice()
