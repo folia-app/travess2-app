@@ -1,0 +1,11 @@
+name = "folia-cf-coordinates"
+main = "src/index.js"
+compatibility_date = "2026-09-01"
+
+[assets]
+directory = "../dist"
+binding = "ASSETS"
+# Both off on purpose: the worker resolves paths itself so Cloudflare and
+# Netlify agree on what /foo and /foo.html each mean. See src/index.js.
+html_handling = "none"
+not_found_handling = "none"

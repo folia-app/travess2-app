@@ -124,10 +124,43 @@ const urls = () =>
     ? String(import.meta.env.VITE_RPCS).split(',').map((s) => s.trim()).filter(Boolean)
     : RPCS)
 
+/**
+ * Tenderly is the scarce resource, so ordinary traffic is kept off it.
+ *
+ * Every endpoint in the list serves eth_call happily, but only the Tenderly
+ * ones will serve a log query spanning a contract's whole history -- drpc,
+ * mevblocker, publicnode and blastapi each cap ranges at about 10,000 blocks
+ * and refuse anything wider. Pointing ordinary reads at Tenderly first spent
+ * the one resource that can answer the query that matters, and the symptom was
+ * a stream of 429s in the console.
+ *
+ * So the two orderings differ on purpose: ordinary reads try the plentiful
+ * endpoints first and keep Tenderly as a fallback, while log scans go straight
+ * to the only endpoints that can serve them.
+ */
+const isTenderly = (u) => u.includes('tenderly')
+
+/** Ordering for ordinary contract calls: plentiful endpoints first. */
+const callUrls = () => {
+  const all = urls()
+  return [...all.filter((u) => !isTenderly(u)), ...all.filter(isTenderly)]
+}
+
+/** Ordering for whole-history log scans: the ones that will serve them first. */
+const logUrls = () => urls()
+
+/** A rate-limit response, as opposed to a refusal to serve the range. */
+const isRateLimit = (e) => {
+  const m = `${e && e.message} ${e && e.body} ${e && e.status}`.toLowerCase()
+  return m.includes('429') || m.includes('rate limit') || m.includes('too many requests')
+}
+
+const sleepMs = (ms) => new Promise((r) => setTimeout(r, ms))
+
 export const providers = () => urls().map((u) => new ethers.providers.JsonRpcProvider(u))
 
 /** A read provider that fails over. Use for ordinary contract calls. */
-export const readProvider = () => new PooledProvider(urls())
+export const readProvider = () => new PooledProvider(callUrls())
 
 /** Run fn against each endpoint until one answers. */
 export async function anyOf (fn) {
@@ -152,13 +185,26 @@ export async function anyOf (fn) {
  */
 export async function getAllLogs (address, abi, filterName, fromBlock = 0) {
   const errors = []
-  for (const url of urls()) {
+  for (const url of logUrls()) {
     const p = new PooledProvider([url], { concurrency: 2 })
-    try {
-      const c = new ethers.Contract(address, abi, p)
-      const logs = await c.queryFilter(c.filters[filterName](), fromBlock)
-      return { logs, via: url, mode: 'wide' }
-    } catch (e) { errors.push(`${url}: ${e.message.slice(0, 60)}`) }
+    const c = new ethers.Contract(address, abi, p)
+    // A 429 and a refusal to serve the range look alike but must not be treated
+    // alike: moving on from a rate-limited Tenderly lands on an endpoint that
+    // cannot serve the range at all, so the query simply ends. Back off and
+    // retry here; only advance when this endpoint has actually refused.
+    for (let i = 0; i < 4; i++) {
+      try {
+        const logs = await c.queryFilter(c.filters[filterName](), fromBlock)
+        return { logs, via: url, mode: 'wide' }
+      } catch (e) {
+        if (isRateLimit(e) && i < 3) {
+          await sleepMs(600 * Math.pow(2, i) + Math.random() * 400)
+          continue
+        }
+        errors.push(`${url}: ${String(e && e.message).slice(0, 60)}`)
+        break
+      }
+    }
   }
   throw new Error('no endpoint served the full log range — ' + errors.slice(0, 2).join(' | '))
 }
