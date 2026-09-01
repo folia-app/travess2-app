@@ -203,6 +203,13 @@ export async function getTransferEvents (address, abi, fromBlock = 0) {
  * actually needs, and every call is a plain eth_call that all of the endpoints
  * above serve.
  */
+/** Not every ERC721 implements Enumerable; calling tokenByIndex on one that
+ *  does not throws, which is how this fallback managed to break a listing it
+ *  was written to rescue. shaDoAW is such a contract. */
+export const canEnumerate = (abi) =>
+  abi.some((x) => x.type === 'function' && x.name === 'tokenByIndex') &&
+  abi.some((x) => x.type === 'function' && x.name === 'totalSupply')
+
 export async function enumerateOwners (address, abi, batch = 25) {
   // Through the pool, not a raw endpoint: this is two calls per token, so a
   // few hundred for a full collection, and unthrottled that is an instant 429.
