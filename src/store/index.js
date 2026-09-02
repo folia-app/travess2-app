@@ -1,6 +1,6 @@
 import { createStore } from 'vuex'
 import { ethers } from 'ethers'
-import { readProvider } from './rpc'
+import { readProvider, lookupAddresses } from './rpc'
 import { MerkleTree } from 'merkletreejs';
 import Contracts from 'nft-contracts'
 import { init, getProvider, getNftContract, NFTContractDeploy } from './contracts'
@@ -169,6 +169,12 @@ const store = createStore({
     }
   },
   actions: {
+    /**
+     * One Addr component asks for one name, but a page mounts twenty-five of
+     * them in the same tick. Rather than change every call site, requests made
+     * close together are collected and answered by one batched reverse lookup:
+     * two eth_calls for the whole page instead of roughly four per address.
+     */
     async ensName({ state, commit }, addr) {
       addr = addr.toLowerCase()
 
@@ -177,10 +183,15 @@ const store = createStore({
       }
 
       try {
-        const mainnetProvider = await getProvider({ name: 'homestead' })
-        const result = await mainnetProvider.lookupAddress(addr)
-        commit('ADD_ENS_NAME', { addr, result }) // save even null
-        return result
+        const names = await queueEnsLookup(addr)
+        // Commit every name the batch resolved, not only the one asked for, so
+        // the sibling components do not each repeat the round trip.
+        for (const [a, result] of Object.entries(names)) {
+          if (state.ensNames[a] === undefined) {
+            commit('ADD_ENS_NAME', { addr: a, result }) // save even null
+          }
+        }
+        return names[addr] ?? null
       } catch (_) { }
     },
     async checkNetwork({ getters, dispatch }) {
@@ -372,5 +383,41 @@ const store = createStore({
 
 
 
+
+/**
+ * Collect reverse-lookup requests made within one tick and resolve them
+ * together. Every caller gets the whole batch's answers back, so a component
+ * can populate its neighbours' names as well as its own.
+ *
+ * The window is deliberately short: long enough to catch the components that
+ * mount together, short enough that a lone lookup is not visibly delayed.
+ */
+const ENS_BATCH_WINDOW_MS = 20
+const ENS_BATCH_MAX = 100
+let ensQueue = new Set()
+let ensWaiters = []
+let ensTimer = null
+
+function queueEnsLookup (addr) {
+  return new Promise((resolve, reject) => {
+    ensQueue.add(addr)
+    ensWaiters.push({ resolve, reject })
+    if (ensQueue.size >= ENS_BATCH_MAX) return flushEnsQueue()
+    if (!ensTimer) ensTimer = setTimeout(flushEnsQueue, ENS_BATCH_WINDOW_MS)
+  })
+}
+
+function flushEnsQueue () {
+  clearTimeout(ensTimer)
+  ensTimer = null
+  const addresses = [...ensQueue]
+  const waiters = ensWaiters
+  ensQueue = new Set()
+  ensWaiters = []
+  lookupAddresses(addresses).then(
+    (names) => waiters.forEach((w) => w.resolve(names)),
+    (err) => waiters.forEach((w) => w.reject(err))
+  )
+}
 
 export default store
